@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Nexzoneo",
+    "slug": "nexzoneo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#141B4D"
+    },
+    "scheme": "nexzoneo",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nexzoneo.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#141B4D"
+      },
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#141B4D"
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

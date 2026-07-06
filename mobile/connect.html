@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open Nexzoneo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #141B4D;
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      color: #141B4D;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    p { color: #6b7280; font-size: 14px; line-height: 1.5; }
+    .btn {
+      display: block;
+      background: #141B4D;
+      color: #fff;
+      text-decoration: none;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 17px;
+      margin: 20px 0;
+    }
+    .btn:active { opacity: 0.9; }
+    img { border-radius: 12px; margin: 12px 0; }
+    ol { text-align: left; font-size: 13px; color: #374151; padding-left: 18px; }
+    li { margin-bottom: 8px; }
+    .tip { background: #E9DFCC; padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 16px; text-align: left; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📱 Open Nexzoneo</h1>
+    <p>Expo dev server must be running on your Mac. Tap the button below — it should open <strong>Expo Go</strong> and load the app.</p>
+
+    <a class="btn" href="exp://192.168.100.16:8081">Open in Expo Go</a>
+
+    <p style="font-size:12px;color:#9ca3af;">Or scan this QR code:</p>
+    <img width="220" height="220" alt="QR"
+      src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=exp%3A%2F%2F192.168.100.16%3A8081" />
+
+    <ol>
+      <li>Install <strong>Expo Go</strong> if you haven’t</li>
+      <li>Same Wi‑Fi as your Mac</li>
+      <li>Tap <strong>Open in Expo Go</strong> above</li>
+      <li>Login: <strong>customer@demo.com</strong> / <strong>demo123</strong></li>
+    </ol>
+
+    <div class="tip">
+      <strong>Still on the Expo Go home screen?</strong><br>
+      Wait ~30 seconds, then in Expo Go pull down to refresh the <em>Development servers</em> list — <strong>Nexzoneo</strong> should appear. Tap it.
+    </div>
+  </div>
+</body>
+</html>
