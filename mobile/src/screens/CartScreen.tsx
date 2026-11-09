@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert, ActivityIndicator, Platform,
 } from "react-native";
 import { colors } from "../theme";
 import { useAuth } from "../AuthContext";
@@ -9,6 +9,11 @@ import { apiErrorMessage, orderApi, OrderQuote } from "../api";
 import EmptyState from "../components/EmptyState";
 
 type OrderMethod = "delivery" | "pickup";
+
+function money(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
 
 export default function CartScreen({ navigation }: any) {
   const { user, branding } = useAuth();
@@ -40,10 +45,8 @@ export default function CartScreen({ navigation }: any) {
         if (!cancelled) setQuote(data);
       } catch {
         if (!cancelled) {
-          // Fallback preview from local cart + branding config
-          const subtotal = total;
-          // Decision 2C: fees deferred — local fallback also charges 0
-          const tax_rate = Number(branding.tax_rate_percent || 0);
+          const subtotal = money(total);
+          const tax_rate = money(branding.tax_rate_percent);
           const tax_amount = Math.round(subtotal * tax_rate) / 100;
           setQuote({
             subtotal,
@@ -64,11 +67,15 @@ export default function CartScreen({ navigation }: any) {
   const checkout = async () => {
     if (!companyId || items.length === 0) return;
     if (hasMixedSellers) {
-      Alert.alert("Mixed sellers", "Please remove items from other sellers before checkout.");
+      const msg = "Please remove items from other sellers before checkout.";
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Mixed sellers", msg);
       return;
     }
     if (orderMethod === "delivery" && !address.trim()) {
-      Alert.alert("Address required", "Please enter a delivery address.");
+      const msg = "Please enter a delivery address.";
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Address required", msg);
       return;
     }
     setLoading(true);
@@ -82,7 +89,9 @@ export default function CartScreen({ navigation }: any) {
       clear();
       navigation.getParent()?.navigate("OrderStatus", { orderId: data.id });
     } catch (err) {
-      Alert.alert("Error", apiErrorMessage(err, "Could not place order. Please try again."));
+      const msg = apiErrorMessage(err, "Could not place order. Please try again.");
+      if (Platform.OS === "web") window.alert(msg);
+      else Alert.alert("Error", msg);
     } finally {
       setLoading(false);
     }
@@ -102,30 +111,27 @@ export default function CartScreen({ navigation }: any) {
     );
   }
 
-  // API Decimals arrive as strings — always coerce before .toFixed()
-  const displaySubtotal = Number(quote?.subtotal ?? total) || 0;
-  const displayTax = Number(quote?.tax_amount ?? 0) || 0;
-  const displayTotal = Number(quote?.total_price ?? displaySubtotal + displayTax) || 0;
+  const displaySubtotal = money(quote?.subtotal, money(total));
+  const displayTax = money(quote?.tax_amount);
+  const displayTotal = money(quote?.total_price, displaySubtotal + displayTax);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {hasMixedSellers && (
         <View style={styles.warning}>
           <Text style={styles.warningText}>Your cart has items from multiple sellers. Remove extra items to checkout.</Text>
         </View>
       )}
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.product.id}
-        contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
+
+      <View style={styles.itemsWrap}>
+        {items.map((item) => (
+          <View key={item.product.id} style={styles.item}>
             <View style={{ flex: 1 }}>
               <Text style={styles.itemName}>{item.product.name}</Text>
               {branding.marketplace_mode_enabled ? (
                 <Text style={styles.itemSeller}>{item.product.company?.name}</Text>
               ) : null}
-              <Text style={styles.itemPrice}>${Number(item.product.price).toFixed(2)} each</Text>
+              <Text style={styles.itemPrice}>${money(item.product.price).toFixed(2)} each</Text>
             </View>
             <View style={styles.qtyRow}>
               <TouchableOpacity onPress={() => updateQuantity(item.product.id, item.quantity - 1)}>
@@ -140,8 +146,9 @@ export default function CartScreen({ navigation }: any) {
               <Text style={styles.remove}>✕</Text>
             </TouchableOpacity>
           </View>
-        )}
-      />
+        ))}
+      </View>
+
       <View style={styles.footer}>
         <Text style={styles.label}>How would you like to receive your order?</Text>
         <View style={styles.methodRow}>
@@ -161,7 +168,7 @@ export default function CartScreen({ navigation }: any) {
           ))}
         </View>
         {orderMethod === "delivery" && (
-          <>
+          <View>
             <Text style={styles.label}>Delivery Address</Text>
             <TextInput
               style={styles.input}
@@ -173,7 +180,7 @@ export default function CartScreen({ navigation }: any) {
             <Text style={styles.pickupNote}>
               Delivery fees are not charged yet — courier pricing comes later.
             </Text>
-          </>
+          </View>
         )}
         {orderMethod === "pickup" && (
           <Text style={styles.pickupNote}>
@@ -185,7 +192,7 @@ export default function CartScreen({ navigation }: any) {
           {quoteLoading ? (
             <ActivityIndicator color={branding.primary_color} style={{ marginVertical: 8 }} />
           ) : (
-            <>
+            <View>
               <View style={styles.breakdownRow}>
                 <Text style={styles.breakdownLabel}>Subtotal</Text>
                 <Text style={styles.breakdownValue}>${displaySubtotal.toFixed(2)}</Text>
@@ -193,7 +200,7 @@ export default function CartScreen({ navigation }: any) {
               {displayTax > 0 && (
                 <View style={styles.breakdownRow}>
                   <Text style={styles.breakdownLabel}>
-                    Tax ({Number(quote?.tax_rate_percent || branding.tax_rate_percent || 0)}%)
+                    Tax ({money(quote?.tax_rate_percent || branding.tax_rate_percent)}%)
                   </Text>
                   <Text style={styles.breakdownValue}>${displayTax.toFixed(2)}</Text>
                 </View>
@@ -204,7 +211,7 @@ export default function CartScreen({ navigation }: any) {
                   ${displayTotal.toFixed(2)}
                 </Text>
               </View>
-            </>
+            </View>
           )}
         </View>
 
@@ -217,14 +224,16 @@ export default function CartScreen({ navigation }: any) {
         </TouchableOpacity>
         <Text style={styles.note}>Payment is requested after the seller accepts. Totals are calculated on the server.</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.warmBeige },
+  scrollContent: { paddingBottom: 40 },
   warning: { backgroundColor: "#fef3c7", padding: 12, margin: 16, marginBottom: 0, borderRadius: 8 },
   warningText: { color: "#92400e", fontSize: 13 },
+  itemsWrap: { padding: 16, paddingBottom: 0 },
   item: { flexDirection: "row", alignItems: "center", backgroundColor: colors.white, borderRadius: 12, padding: 14, marginBottom: 10 },
   itemName: { fontWeight: "600", color: colors.deepNavy },
   itemSeller: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
@@ -233,7 +242,7 @@ const styles = StyleSheet.create({
   qtyBtn: { fontSize: 20, color: colors.deepNavy, paddingHorizontal: 8 },
   qty: { fontSize: 16, fontWeight: "600", minWidth: 24, textAlign: "center" },
   remove: { color: colors.danger, fontSize: 18, padding: 4 },
-  footer: { backgroundColor: colors.white, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+  footer: { backgroundColor: colors.white, padding: 20, marginTop: 8, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   label: { fontSize: 13, fontWeight: "500", color: colors.deepNavy, marginBottom: 8, marginTop: 4 },
   methodRow: { flexDirection: "row", marginBottom: 16 },
   methodBtn: {
@@ -243,7 +252,7 @@ const styles = StyleSheet.create({
   methodText: { color: colors.deepNavy, fontWeight: "600" },
   methodHint: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
   methodTextActive: { color: colors.white },
-  input: { borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10, padding: 12, marginBottom: 16 },
+  input: { borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10, padding: 12, marginBottom: 8 },
   pickupNote: { fontSize: 13, color: colors.textMuted, marginBottom: 16, lineHeight: 18 },
   breakdown: { marginBottom: 8 },
   breakdownRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
