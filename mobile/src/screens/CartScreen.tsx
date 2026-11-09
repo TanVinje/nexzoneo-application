@@ -102,9 +102,10 @@ export default function CartScreen({ navigation }: any) {
     );
   }
 
-  const displaySubtotal = quote?.subtotal ?? total;
-  const displayTax = quote?.tax_amount ?? 0;
-  const displayTotal = quote?.total_price ?? displaySubtotal + displayTax;
+  // API Decimals arrive as strings — always coerce before .toFixed()
+  const displaySubtotal = Number(quote?.subtotal ?? total) || 0;
+  const displayTax = Number(quote?.tax_amount ?? 0) || 0;
+  const displayTotal = Number(quote?.total_price ?? displaySubtotal + displayTax) || 0;
 
   return (
     <View style={styles.container}>
@@ -234,10 +235,10 @@ const styles = StyleSheet.create({
   remove: { color: colors.danger, fontSize: 18, padding: 4 },
   footer: { backgroundColor: colors.white, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   label: { fontSize: 13, fontWeight: "500", color: colors.deepNavy, marginBottom: 8, marginTop: 4 },
-  methodRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  methodRow: { flexDirection: "row", marginBottom: 16 },
   methodBtn: {
     flex: 1, borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10,
-    padding: 12, alignItems: "center",
+    padding: 12, alignItems: "center", marginHorizontal: 5,
   },
   methodText: { color: colors.deepNavy, fontWeight: "600" },
   methodHint: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
