@@ -26,6 +26,13 @@ A full-stack MVP marketplace built from the Nexzoneo technical and functional sp
 
 See **[DEMO.md](DEMO.md)** — customers open a Netlify link in the browser (no app install).
 
+## Locked product decisions
+
+See **[DECISIONS.md](DECISIONS.md)**:
+
+1. **Publishing:** hybrid later (shared multi-tenant app now; tenant IDs ready for branded EAS builds)
+2. **Delivery fees:** deferred (pickup vs delivery UI; fee = $0 until enabled)
+
 ## Features (MVP)
 
 ### Customer Mobile App

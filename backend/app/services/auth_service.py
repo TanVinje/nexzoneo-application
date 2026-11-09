@@ -40,7 +40,7 @@ def register_user(db: Session, data: UserCreate) -> User:
                 app_name=data.company_name,
                 primary_color="#141B4D",
                 secondary_color="#53619A",
-                delivery_fee_flat=Decimal("4.99"),
+                delivery_fee_flat=Decimal("0"),
                 tax_rate_percent=Decimal("0"),
             )
         )

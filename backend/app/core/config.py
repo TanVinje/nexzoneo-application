@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     stripe_currency: str = "usd"
     payment_return_url: str = "nexzoneo://payment"
 
+    # Decision 2C: delivery fees deferred until courier/rules are approved.
+    # Keep fee columns/API, but charge 0 while this flag is false.
+    delivery_fees_enabled: bool = False
+
     class Config:
         env_file = ".env"
 

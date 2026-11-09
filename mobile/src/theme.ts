@@ -11,3 +11,11 @@ export const colors = {
 };
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000";
+
+/**
+ * Decision 1C (hybrid later):
+ * Shared multi-tenant app now. Optional tenant id pins branding/catalog for a
+ * future per-company EAS build without rewriting runtime resolution.
+ * Leave empty for the shared Nexzoneo marketplace experience.
+ */
+export const TENANT_ID = process.env.EXPO_PUBLIC_TENANT_ID || "";

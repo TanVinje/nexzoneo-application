@@ -107,17 +107,18 @@ export default function BrandingPage() {
             </label>
           ))}
           <label style={{ display: "block", marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Flat delivery fee (pickup is always free)</span>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Flat delivery fee (deferred)</span>
             <input
               type="number"
               min={0}
               step="0.01"
-              value={config.delivery_fee_flat ?? 0}
-              onChange={(e) => setConfig({ ...config, delivery_fee_flat: Number(e.target.value) })}
-              style={{ marginTop: 6 }}
+              value={0}
+              disabled
+              style={{ marginTop: 6, opacity: 0.6 }}
             />
             <p style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
-              No courier provider is connected yet — this is a configurable flat fee only.
+              Delivery fees are deferred for now (checkout shows pickup vs delivery only, fee = $0).
+              Fee rules can be enabled later without a rebuild.
             </p>
           </label>
           <label style={{ display: "block", marginBottom: 16 }}>
@@ -162,7 +163,7 @@ export default function BrandingPage() {
             <p style={{ opacity: 0.9, marginTop: 8, fontSize: 16, fontWeight: 600 }}>{config.banner_title || "Order ahead"}</p>
             <p style={{ opacity: 0.8, marginTop: 4, fontSize: 14 }}>{config.banner_subtitle || config.welcome_text}</p>
             <p style={{ opacity: 0.7, marginTop: 12, fontSize: 12 }}>
-              Delivery ${Number(config.delivery_fee_flat || 0).toFixed(2)} · Pickup free
+              Pickup or delivery · fees coming later
               {Number(config.tax_rate_percent || 0) > 0 ? ` · Tax ${config.tax_rate_percent}%` : ""}
             </p>
           </div>

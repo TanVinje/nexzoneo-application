@@ -40,7 +40,9 @@ def run_migrations():
             conn.execute(text("UPDATE orders SET delivery_fee = COALESCE(delivery_fee, 0) WHERE delivery_fee IS NULL"))
             conn.execute(text("UPDATE orders SET tax_amount = COALESCE(tax_amount, 0) WHERE tax_amount IS NULL"))
         if "white_label_configs" in inspector.get_table_names():
-            conn.execute(text("UPDATE white_label_configs SET delivery_fee_flat = COALESCE(delivery_fee_flat, 4.99) WHERE delivery_fee_flat IS NULL"))
+            conn.execute(
+                text("UPDATE white_label_configs SET delivery_fee_flat = COALESCE(delivery_fee_flat, 0) WHERE delivery_fee_flat IS NULL")
+            )
             conn.execute(text("UPDATE white_label_configs SET tax_rate_percent = COALESCE(tax_rate_percent, 0) WHERE tax_rate_percent IS NULL"))
             conn.execute(
                 text(

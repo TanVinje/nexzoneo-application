@@ -3,7 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, Image, RefreshControl, ScrollView, Platform,
 } from "react-native";
 import * as Location from "expo-location";
-import { colors } from "../theme";
+import { colors, TENANT_ID } from "../theme";
 import { useAuth } from "../AuthContext";
 import { useCart } from "../CartContext";
 import { Product, productApi, imageUrl, whiteLabelApi, PublicOffer } from "../api";
@@ -52,9 +52,10 @@ export default function HomeScreen({ navigation }: any) {
       }
 
       const listParams: { lat?: number; lon?: number; company_id?: string } = { lat, lon };
-      // Single-brand mode: pin catalog to owner company when marketplace is off
-      if (!branding.marketplace_mode_enabled && branding.company_id) {
-        listParams.company_id = branding.company_id;
+      // Branded EAS build or single-brand marketplace mode pins the catalog
+      const pinnedTenant = TENANT_ID || (!branding.marketplace_mode_enabled ? branding.company_id : undefined);
+      if (pinnedTenant) {
+        listParams.company_id = pinnedTenant;
       }
 
       const [prods, cats, offs] = await Promise.all([
@@ -129,7 +130,7 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.bannerLabel}>Pickup or delivery</Text>
               <Text style={styles.bannerTitle}>Order your favorites</Text>
               <Text style={styles.bannerSub}>
-                Delivery from ${Number(branding.delivery_fee_flat || 0).toFixed(2)} · Pickup free
+                Pickup or delivery — choose at checkout
               </Text>
             </View>
           )}

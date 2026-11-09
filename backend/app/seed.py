@@ -45,7 +45,7 @@ def seed_database():
                 welcome_text="Discover local products near you",
                 marketplace_mode_enabled=True,
                 ranking_boost_enabled=True,
-                delivery_fee_flat=Decimal("4.99"),
+                delivery_fee_flat=Decimal("0"),
                 tax_rate_percent=Decimal("0"),
                 banner_title="Order ahead, skip the wait",
                 banner_subtitle="Local favorites delivered or ready for pickup",
@@ -74,10 +74,10 @@ def seed_database():
                 primary_color="#53619A",
                 secondary_color="#7890B0",
                 welcome_text="Fresh from your neighborhood",
-                delivery_fee_flat=Decimal("3.50"),
+                delivery_fee_flat=Decimal("0"),
                 tax_rate_percent=Decimal("0"),
                 banner_title="Farm-fresh deals today",
-                banner_subtitle="Pickup free · delivery from $3.50",
+                banner_subtitle="Pickup or delivery — choose at checkout",
             )
         )
 

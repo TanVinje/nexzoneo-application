@@ -50,13 +50,18 @@ def calculate_order_totals(
     order_method: str,
     wl: Optional[WhiteLabelConfig],
 ) -> Tuple[Decimal, Decimal, Decimal, Decimal, Decimal]:
-    """Returns subtotal, delivery_fee, tax_amount, total, tax_rate_percent."""
+    """Returns subtotal, delivery_fee, tax_amount, total, tax_rate_percent.
+
+    Delivery fees are deferred (always 0) until settings.delivery_fees_enabled is true.
+    """
+    from app.core.config import settings
+
     subtotal = _money(subtotal)
     delivery_fee = Decimal("0")
     tax_rate = Decimal("0")
     if wl:
         tax_rate = Decimal(str(wl.tax_rate_percent or 0))
-        if order_method == "delivery":
+        if settings.delivery_fees_enabled and order_method == "delivery":
             delivery_fee = _money(Decimal(str(wl.delivery_fee_flat or 0)))
     taxable = subtotal + delivery_fee
     tax_amount = _money(taxable * tax_rate / Decimal("100")) if tax_rate else Decimal("0")

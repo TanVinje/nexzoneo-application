@@ -42,14 +42,14 @@ export default function CartScreen({ navigation }: any) {
         if (!cancelled) {
           // Fallback preview from local cart + branding config
           const subtotal = total;
-          const delivery_fee = orderMethod === "delivery" ? Number(branding.delivery_fee_flat || 0) : 0;
+          // Decision 2C: fees deferred — local fallback also charges 0
           const tax_rate = Number(branding.tax_rate_percent || 0);
-          const tax_amount = Math.round((subtotal + delivery_fee) * tax_rate) / 100;
+          const tax_amount = Math.round(subtotal * tax_rate) / 100;
           setQuote({
             subtotal,
-            delivery_fee,
+            delivery_fee: 0,
             tax_amount,
-            total_price: subtotal + delivery_fee + tax_amount,
+            total_price: subtotal + tax_amount,
             tax_rate_percent: tax_rate,
           });
         }
@@ -59,7 +59,7 @@ export default function CartScreen({ navigation }: any) {
     };
     fetchQuote();
     return () => { cancelled = true; };
-  }, [companyId, items, orderMethod, hasMixedSellers, total, branding.delivery_fee_flat, branding.tax_rate_percent]);
+  }, [companyId, items, orderMethod, hasMixedSellers, total, branding.tax_rate_percent]);
 
   const checkout = async () => {
     if (!companyId || items.length === 0) return;
@@ -103,9 +103,8 @@ export default function CartScreen({ navigation }: any) {
   }
 
   const displaySubtotal = quote?.subtotal ?? total;
-  const displayDelivery = quote?.delivery_fee ?? (orderMethod === "delivery" ? Number(branding.delivery_fee_flat || 0) : 0);
   const displayTax = quote?.tax_amount ?? 0;
-  const displayTotal = quote?.total_price ?? displaySubtotal + displayDelivery + displayTax;
+  const displayTotal = quote?.total_price ?? displaySubtotal + displayTax;
 
   return (
     <View style={styles.container}>
@@ -155,9 +154,7 @@ export default function CartScreen({ navigation }: any) {
                 {method === "delivery" ? "Delivery" : "Pickup"}
               </Text>
               <Text style={[styles.methodHint, orderMethod === method && styles.methodTextActive]}>
-                {method === "delivery"
-                  ? `+$${Number(branding.delivery_fee_flat || 0).toFixed(2)}`
-                  : "Free"}
+                {method === "delivery" ? "To your address" : "At the store"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -172,11 +169,14 @@ export default function CartScreen({ navigation }: any) {
               onChangeText={setAddress}
               placeholderTextColor={colors.mutedBlue}
             />
+            <Text style={styles.pickupNote}>
+              Delivery fees are not charged yet — courier pricing comes later.
+            </Text>
           </>
         )}
         {orderMethod === "pickup" && (
           <Text style={styles.pickupNote}>
-            You'll pick up at {items[0]?.product.company?.name || "the seller's location"}. No delivery fee.
+            You'll pick up at {items[0]?.product.company?.name || "the seller's location"}.
           </Text>
         )}
 
@@ -188,12 +188,6 @@ export default function CartScreen({ navigation }: any) {
               <View style={styles.breakdownRow}>
                 <Text style={styles.breakdownLabel}>Subtotal</Text>
                 <Text style={styles.breakdownValue}>${displaySubtotal.toFixed(2)}</Text>
-              </View>
-              <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownLabel}>Delivery fee</Text>
-                <Text style={styles.breakdownValue}>
-                  {orderMethod === "pickup" ? "Free" : `$${displayDelivery.toFixed(2)}`}
-                </Text>
               </View>
               {displayTax > 0 && (
                 <View style={styles.breakdownRow}>

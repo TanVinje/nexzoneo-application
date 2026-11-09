@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authApi, User, WhiteLabelConfig, whiteLabelApi, setUnauthorizedHandler } from "./api";
-import { colors } from "./theme";
+import { colors, TENANT_ID } from "./theme";
 import { registerForPushNotifications } from "./notifications";
 
 interface AuthContextType {
@@ -22,7 +22,7 @@ const defaultBranding: WhiteLabelConfig = {
   welcome_text: "Discover local products near you",
   marketplace_mode_enabled: true,
   company_id: null,
-  delivery_fee_flat: 4.99,
+  delivery_fee_flat: 0,
   tax_rate_percent: 0,
   banner_title: "Order ahead, skip the wait",
   banner_subtitle: "Local favorites delivered or ready for pickup",
@@ -53,7 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       setUser(null);
     });
-    whiteLabelApi.config().then((r) => setBranding(r.data)).catch(() => {});
+    // Shared app: default owner branding. Branded EAS builds set EXPO_PUBLIC_TENANT_ID.
+    whiteLabelApi
+      .config(TENANT_ID || undefined)
+      .then((r) => setBranding(r.data))
+      .catch(() => {});
     AsyncStorage.getItem("token").then((token) => {
       if (token) {
         authApi.me().then((r) => {
