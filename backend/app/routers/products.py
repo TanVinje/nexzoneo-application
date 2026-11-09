@@ -37,8 +37,16 @@ def list_products(
     if q:
         query = query.filter(Product.name.ilike(f"%{q}%"))
 
-    products = query.all()
     wl = get_white_label_config(db, str(company_id) if company_id else None)
+    # When marketplace mode is off, only show the brand owner's catalog.
+    if wl and not wl.marketplace_mode_enabled and not company_id:
+        query = query.filter(Product.company_id == wl.company_id)
+    elif wl and not wl.marketplace_mode_enabled and company_id and str(company_id) != str(wl.company_id):
+        # Explicit other-company filter still allowed for deep links only when marketplace on;
+        # when off, force owner catalog.
+        query = query.filter(Product.company_id == wl.company_id)
+
+    products = query.all()
     wl_id = str(wl.company_id) if wl else None
     boost = wl.ranking_boost_enabled if wl else True
     ranked = rank_products(products, q or "", lat, lon, wl_id, boost)

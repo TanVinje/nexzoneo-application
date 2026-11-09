@@ -129,7 +129,21 @@ export default function OrderDetailPage() {
           {order.delivery_address && (
             <p style={{ fontSize: 14, marginTop: 8, color: colors.textMuted }}>📍 {order.delivery_address}</p>
           )}
-          <p style={{ fontSize: 22, fontWeight: 700, color: colors.deepNavy, marginTop: 20 }}>
+          <div style={{ marginTop: 16, fontSize: 14, color: colors.textMuted }}>
+            {order.subtotal != null && <p>Subtotal: ${Number(order.subtotal).toFixed(2)}</p>}
+            {order.delivery_fee != null && (
+              <p style={{ marginTop: 4 }}>
+                Delivery fee:{" "}
+                {order.order_method === "pickup" || Number(order.delivery_fee) === 0
+                  ? "Free"
+                  : `$${Number(order.delivery_fee).toFixed(2)}`}
+              </p>
+            )}
+            {order.tax_amount != null && Number(order.tax_amount) > 0 && (
+              <p style={{ marginTop: 4 }}>Tax: ${Number(order.tax_amount).toFixed(2)}</p>
+            )}
+          </div>
+          <p style={{ fontSize: 22, fontWeight: 700, color: colors.deepNavy, marginTop: 12 }}>
             Total: ${Number(order.total_price).toFixed(2)}
           </p>
         </div>

@@ -168,6 +168,9 @@ class OrderResponse(BaseModel):
     company_id: UUID
     status: str
     payment_status: str
+    subtotal: Decimal = Decimal("0")
+    delivery_fee: Decimal = Decimal("0")
+    tax_amount: Decimal = Decimal("0")
     total_price: Decimal
     order_method: str
     delivery_address: Optional[str]
@@ -179,6 +182,21 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class OrderQuoteRequest(BaseModel):
+    company_id: UUID
+    items: List[OrderItemCreate]
+    order_method: str = "delivery"
+
+
+class OrderQuoteResponse(BaseModel):
+    subtotal: Decimal
+    delivery_fee: Decimal
+    tax_amount: Decimal
+    total_price: Decimal
+    tax_rate_percent: Decimal
+    currency_note: str = "Amounts calculated server-side"
 
 
 class PaymentConfigResponse(BaseModel):
@@ -220,6 +238,10 @@ class WhiteLabelConfigResponse(BaseModel):
     ranking_boost_enabled: bool
     welcome_text: Optional[str]
     company_id: Optional[UUID] = None
+    delivery_fee_flat: Decimal = Decimal("0")
+    tax_rate_percent: Decimal = Decimal("0")
+    banner_title: Optional[str] = None
+    banner_subtitle: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -233,3 +255,14 @@ class WhiteLabelConfigUpdate(BaseModel):
     marketplace_mode_enabled: Optional[bool] = None
     ranking_boost_enabled: Optional[bool] = None
     welcome_text: Optional[str] = None
+    delivery_fee_flat: Optional[Decimal] = Field(default=None, ge=0)
+    tax_rate_percent: Optional[Decimal] = Field(default=None, ge=0, le=100)
+    banner_title: Optional[str] = None
+    banner_subtitle: Optional[str] = None
+
+
+class PublicOfferResponse(BaseModel):
+    offer_name: str
+    offer_subtitle: Optional[str] = None
+    offer_color: Optional[str] = None
+    company_id: UUID

@@ -45,6 +45,10 @@ def seed_database():
                 welcome_text="Discover local products near you",
                 marketplace_mode_enabled=True,
                 ranking_boost_enabled=True,
+                delivery_fee_flat=Decimal("4.99"),
+                tax_rate_percent=Decimal("0"),
+                banner_title="Order ahead, skip the wait",
+                banner_subtitle="Local favorites delivered or ready for pickup",
             )
         )
 
@@ -70,6 +74,10 @@ def seed_database():
                 primary_color="#53619A",
                 secondary_color="#7890B0",
                 welcome_text="Fresh from your neighborhood",
+                delivery_fee_flat=Decimal("3.50"),
+                tax_rate_percent=Decimal("0"),
+                banner_title="Farm-fresh deals today",
+                banner_subtitle="Pickup free · delivery from $3.50",
             )
         )
 
@@ -138,14 +146,37 @@ def seed_database():
             )
         )
 
-        # 5.9% offer - exclusive, not public
         db.add(
             OfferVisibilityRule(
                 company_id=nexzoneo.id,
                 offer_name="Tony's 5.9% Exclusive Deal",
+                offer_subtitle="Partner-only offer",
+                offer_color="#141B4D",
                 visibility="exclusive",
                 is_active=False,
                 approved_by=None,
+            )
+        )
+        db.add(
+            OfferVisibilityRule(
+                company_id=nexzoneo.id,
+                offer_name="Free pickup this week",
+                offer_subtitle="Skip the line — order ahead",
+                offer_color="#141B4D",
+                visibility="public",
+                is_active=True,
+                approved_by="seed",
+            )
+        )
+        db.add(
+            OfferVisibilityRule(
+                company_id=local_shop.id,
+                offer_name="Fresh mango special",
+                offer_subtitle="Seasonal fruit boxes",
+                offer_color="#53619A",
+                visibility="public",
+                is_active=True,
+                approved_by="seed",
             )
         )
 

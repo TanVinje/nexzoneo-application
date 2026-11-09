@@ -11,16 +11,29 @@ from app.models import Order, OrderItem, ProductRating, SellerRating, User
 from app.schemas import (
     CheckoutSessionResponse,
     OrderCreate,
+    OrderQuoteRequest,
+    OrderQuoteResponse,
     OrderResponse,
     PaymentConfigResponse,
     PaymentRequest,
     ProductRatingCreate,
     SellerRatingCreate,
 )
-from app.services.order_service import create_order, mark_order_paid, process_payment
+from app.services.order_service import create_order, mark_order_paid, process_payment, quote_order
 from app.services.stripe_service import create_checkout_session, get_publishable_key, handle_webhook, stripe_enabled
 
 router = APIRouter(tags=["orders", "ratings"])
+
+
+@router.post("/orders/quote", response_model=OrderQuoteResponse)
+def quote_order_totals(
+    data: OrderQuoteRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role("customer")),
+):
+    """Server-side fee preview before placing an order."""
+    result = quote_order(db, str(data.company_id), data.items, data.order_method)
+    return OrderQuoteResponse(**result)
 
 
 @router.post("/orders", response_model=OrderResponse)

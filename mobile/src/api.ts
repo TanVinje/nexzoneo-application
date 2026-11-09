@@ -68,6 +68,9 @@ export interface Order {
   id: string;
   status: string;
   payment_status: string;
+  subtotal?: number;
+  delivery_fee?: number;
+  tax_amount?: number;
   total_price: number;
   order_method: string;
   delivery_address?: string;
@@ -75,6 +78,14 @@ export interface Order {
   company_id: string;
   company?: Company;
   items: { id: string; quantity: number; unit_price: number; product_id?: string; product?: Product }[];
+}
+
+export interface OrderQuote {
+  subtotal: number;
+  delivery_fee: number;
+  tax_amount: number;
+  total_price: number;
+  tax_rate_percent: number;
 }
 
 export interface PaymentConfig {
@@ -89,6 +100,18 @@ export interface WhiteLabelConfig {
   secondary_color: string;
   welcome_text?: string;
   marketplace_mode_enabled: boolean;
+  company_id?: string | null;
+  delivery_fee_flat?: number;
+  tax_rate_percent?: number;
+  banner_title?: string | null;
+  banner_subtitle?: string | null;
+}
+
+export interface PublicOffer {
+  offer_name: string;
+  offer_subtitle?: string | null;
+  offer_color?: string | null;
+  company_id: string;
 }
 
 export interface CartItem {
@@ -122,8 +145,17 @@ export const companyApi = {
 };
 
 export const orderApi = {
-  create: (data: { company_id: string; items: { product_id: string; quantity: number }[]; order_method: string; delivery_address?: string }) =>
-    api.post<Order>("/orders", data),
+  quote: (data: {
+    company_id: string;
+    items: { product_id: string; quantity: number }[];
+    order_method: string;
+  }) => api.post<OrderQuote>("/orders/quote", data),
+  create: (data: {
+    company_id: string;
+    items: { product_id: string; quantity: number }[];
+    order_method: string;
+    delivery_address?: string;
+  }) => api.post<Order>("/orders", data),
   my: () => api.get<Order[]>("/orders/my"),
   get: (id: string) => api.get<Order>(`/orders/${id}`),
   paymentConfig: (id: string) => api.get<PaymentConfig>(`/orders/${id}/payment-config`),
@@ -139,7 +171,11 @@ export const ratingApi = {
 };
 
 export const whiteLabelApi = {
-  config: () => api.get<WhiteLabelConfig>("/white-label/config"),
+  config: (companyId?: string) =>
+    api.get<WhiteLabelConfig>("/white-label/config", {
+      params: companyId ? { company_id: companyId } : undefined,
+    }),
+  offers: () => api.get<PublicOffer[]>("/white-label/offers/public"),
 };
 
 export default api;

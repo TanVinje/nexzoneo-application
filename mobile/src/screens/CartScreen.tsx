@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-  View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert,
+  View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert, ActivityIndicator,
 } from "react-native";
 import { colors } from "../theme";
 import { useAuth } from "../AuthContext";
 import { useCart } from "../CartContext";
-import { apiErrorMessage, orderApi } from "../api";
+import { apiErrorMessage, orderApi, OrderQuote } from "../api";
 import EmptyState from "../components/EmptyState";
 
 type OrderMethod = "delivery" | "pickup";
@@ -16,10 +16,50 @@ export default function CartScreen({ navigation }: any) {
   const [address, setAddress] = useState(user?.saved_address || "");
   const [orderMethod, setOrderMethod] = useState<OrderMethod>("delivery");
   const [loading, setLoading] = useState(false);
+  const [quote, setQuote] = useState<OrderQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   useEffect(() => {
     if (user?.saved_address) setAddress(user.saved_address);
   }, [user?.saved_address]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchQuote = async () => {
+      if (!companyId || items.length === 0 || hasMixedSellers) {
+        setQuote(null);
+        return;
+      }
+      setQuoteLoading(true);
+      try {
+        const { data } = await orderApi.quote({
+          company_id: companyId,
+          items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
+          order_method: orderMethod,
+        });
+        if (!cancelled) setQuote(data);
+      } catch {
+        if (!cancelled) {
+          // Fallback preview from local cart + branding config
+          const subtotal = total;
+          const delivery_fee = orderMethod === "delivery" ? Number(branding.delivery_fee_flat || 0) : 0;
+          const tax_rate = Number(branding.tax_rate_percent || 0);
+          const tax_amount = Math.round((subtotal + delivery_fee) * tax_rate) / 100;
+          setQuote({
+            subtotal,
+            delivery_fee,
+            tax_amount,
+            total_price: subtotal + delivery_fee + tax_amount,
+            tax_rate_percent: tax_rate,
+          });
+        }
+      } finally {
+        if (!cancelled) setQuoteLoading(false);
+      }
+    };
+    fetchQuote();
+    return () => { cancelled = true; };
+  }, [companyId, items, orderMethod, hasMixedSellers, total, branding.delivery_fee_flat, branding.tax_rate_percent]);
 
   const checkout = async () => {
     if (!companyId || items.length === 0) return;
@@ -62,11 +102,16 @@ export default function CartScreen({ navigation }: any) {
     );
   }
 
+  const displaySubtotal = quote?.subtotal ?? total;
+  const displayDelivery = quote?.delivery_fee ?? (orderMethod === "delivery" ? Number(branding.delivery_fee_flat || 0) : 0);
+  const displayTax = quote?.tax_amount ?? 0;
+  const displayTotal = quote?.total_price ?? displaySubtotal + displayDelivery + displayTax;
+
   return (
     <View style={styles.container}>
       {hasMixedSellers && (
         <View style={styles.warning}>
-          <Text style={styles.warningText}>⚠️ Your cart has items from multiple sellers. Remove extra items to checkout.</Text>
+          <Text style={styles.warningText}>Your cart has items from multiple sellers. Remove extra items to checkout.</Text>
         </View>
       )}
       <FlatList
@@ -77,7 +122,9 @@ export default function CartScreen({ navigation }: any) {
           <View style={styles.item}>
             <View style={{ flex: 1 }}>
               <Text style={styles.itemName}>{item.product.name}</Text>
-              <Text style={styles.itemSeller}>{item.product.company?.name}</Text>
+              {branding.marketplace_mode_enabled ? (
+                <Text style={styles.itemSeller}>{item.product.company?.name}</Text>
+              ) : null}
               <Text style={styles.itemPrice}>${Number(item.product.price).toFixed(2)} each</Text>
             </View>
             <View style={styles.qtyRow}>
@@ -105,7 +152,12 @@ export default function CartScreen({ navigation }: any) {
               onPress={() => setOrderMethod(method)}
             >
               <Text style={[styles.methodText, orderMethod === method && styles.methodTextActive]}>
-                {method === "delivery" ? "🚚 Delivery" : "🏪 Pickup"}
+                {method === "delivery" ? "Delivery" : "Pickup"}
+              </Text>
+              <Text style={[styles.methodHint, orderMethod === method && styles.methodTextActive]}>
+                {method === "delivery"
+                  ? `+$${Number(branding.delivery_fee_flat || 0).toFixed(2)}`
+                  : "Free"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -113,16 +165,54 @@ export default function CartScreen({ navigation }: any) {
         {orderMethod === "delivery" && (
           <>
             <Text style={styles.label}>Delivery Address</Text>
-            <TextInput style={styles.input} placeholder="Enter your address" value={address} onChangeText={setAddress} placeholderTextColor={colors.mutedBlue} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your address"
+              value={address}
+              onChangeText={setAddress}
+              placeholderTextColor={colors.mutedBlue}
+            />
           </>
         )}
         {orderMethod === "pickup" && (
-          <Text style={styles.pickupNote}>You'll pick up at {items[0]?.product.company?.name || "the seller's location"}.</Text>
+          <Text style={styles.pickupNote}>
+            You'll pick up at {items[0]?.product.company?.name || "the seller's location"}. No delivery fee.
+          </Text>
         )}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={[styles.totalValue, { color: branding.secondary_color }]}>${total.toFixed(2)}</Text>
+
+        <View style={styles.breakdown}>
+          {quoteLoading ? (
+            <ActivityIndicator color={branding.primary_color} style={{ marginVertical: 8 }} />
+          ) : (
+            <>
+              <View style={styles.breakdownRow}>
+                <Text style={styles.breakdownLabel}>Subtotal</Text>
+                <Text style={styles.breakdownValue}>${displaySubtotal.toFixed(2)}</Text>
+              </View>
+              <View style={styles.breakdownRow}>
+                <Text style={styles.breakdownLabel}>Delivery fee</Text>
+                <Text style={styles.breakdownValue}>
+                  {orderMethod === "pickup" ? "Free" : `$${displayDelivery.toFixed(2)}`}
+                </Text>
+              </View>
+              {displayTax > 0 && (
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>
+                    Tax ({Number(quote?.tax_rate_percent || branding.tax_rate_percent || 0)}%)
+                  </Text>
+                  <Text style={styles.breakdownValue}>${displayTax.toFixed(2)}</Text>
+                </View>
+              )}
+              <View style={[styles.breakdownRow, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={[styles.totalValue, { color: branding.secondary_color }]}>
+                  ${displayTotal.toFixed(2)}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
+
         <TouchableOpacity
           style={[styles.checkoutBtn, { backgroundColor: branding.primary_color }, (loading || hasMixedSellers) && styles.disabled]}
           onPress={checkout}
@@ -130,7 +220,7 @@ export default function CartScreen({ navigation }: any) {
         >
           <Text style={styles.checkoutText}>{loading ? "Placing Order..." : "Place Order"}</Text>
         </TouchableOpacity>
-        <Text style={styles.note}>Payment will be requested after seller accepts your order.</Text>
+        <Text style={styles.note}>Payment is requested after the seller accepts. Totals are calculated on the server.</Text>
       </View>
     </View>
   );
@@ -151,15 +241,23 @@ const styles = StyleSheet.create({
   footer: { backgroundColor: colors.white, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   label: { fontSize: 13, fontWeight: "500", color: colors.deepNavy, marginBottom: 8, marginTop: 4 },
   methodRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  methodBtn: { flex: 1, borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10, padding: 12, alignItems: "center" },
-  methodText: { color: colors.deepNavy, fontWeight: "500" },
+  methodBtn: {
+    flex: 1, borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10,
+    padding: 12, alignItems: "center",
+  },
+  methodText: { color: colors.deepNavy, fontWeight: "600" },
+  methodHint: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
   methodTextActive: { color: colors.white },
   input: { borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10, padding: 12, marginBottom: 16 },
   pickupNote: { fontSize: 13, color: colors.textMuted, marginBottom: 16, lineHeight: 18 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
-  totalLabel: { fontSize: 18, fontWeight: "600" },
-  totalValue: { fontSize: 22, fontWeight: "700" },
-  checkoutBtn: { borderRadius: 12, padding: 16, alignItems: "center" },
+  breakdown: { marginBottom: 8 },
+  breakdownRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  breakdownLabel: { fontSize: 14, color: colors.textMuted },
+  breakdownValue: { fontSize: 14, color: colors.deepNavy, fontWeight: "500" },
+  totalRow: { marginTop: 4, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#E9DFCC" },
+  totalLabel: { fontSize: 18, fontWeight: "700", color: colors.deepNavy },
+  totalValue: { fontSize: 22, fontWeight: "800" },
+  checkoutBtn: { borderRadius: 12, padding: 16, alignItems: "center", marginTop: 8 },
   checkoutText: { color: colors.white, fontWeight: "600", fontSize: 16 },
   disabled: { opacity: 0.5 },
   note: { textAlign: "center", fontSize: 12, color: colors.textMuted, marginTop: 10 },

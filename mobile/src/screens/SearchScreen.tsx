@@ -33,7 +33,14 @@ export default function SearchScreen({ navigation, route }: any) {
     else setLoading(true);
     setError("");
     try {
-      const { data } = await productApi.list({ q: debouncedQuery || undefined, category_id: categoryId });
+      const params: { q?: string; category_id?: string; company_id?: string } = {
+        q: debouncedQuery || undefined,
+        category_id: categoryId,
+      };
+      if (!branding.marketplace_mode_enabled && branding.company_id) {
+        params.company_id = branding.company_id;
+      }
+      const { data } = await productApi.list(params);
       setProducts(data);
     } catch {
       setError("Couldn't search products. Check your connection.");
@@ -41,7 +48,7 @@ export default function SearchScreen({ navigation, route }: any) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [debouncedQuery, categoryId]);
+  }, [debouncedQuery, categoryId, branding.marketplace_mode_enabled, branding.company_id]);
 
   useEffect(() => { load(); }, [load]);
 

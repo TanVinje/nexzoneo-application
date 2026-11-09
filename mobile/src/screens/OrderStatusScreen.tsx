@@ -123,6 +123,28 @@ export default function OrderStatusScreen({ route, navigation }: any) {
             <Text>${(Number(item.unit_price) * item.quantity).toFixed(2)}</Text>
           </View>
         ))}
+        {order.subtotal != null && (
+          <View style={styles.itemRow}>
+            <Text style={styles.feeLabel}>Subtotal</Text>
+            <Text>${Number(order.subtotal).toFixed(2)}</Text>
+          </View>
+        )}
+        {order.delivery_fee != null && (
+          <View style={styles.itemRow}>
+            <Text style={styles.feeLabel}>Delivery fee</Text>
+            <Text>
+              {order.order_method === "pickup" || Number(order.delivery_fee) === 0
+                ? "Free"
+                : `$${Number(order.delivery_fee).toFixed(2)}`}
+            </Text>
+          </View>
+        )}
+        {order.tax_amount != null && Number(order.tax_amount) > 0 && (
+          <View style={styles.itemRow}>
+            <Text style={styles.feeLabel}>Tax</Text>
+            <Text>${Number(order.tax_amount).toFixed(2)}</Text>
+          </View>
+        )}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={[styles.totalValue, { color: branding.secondary_color }]}>${Number(order.total_price).toFixed(2)}</Text>
@@ -190,6 +212,7 @@ const styles = StyleSheet.create({
   addressText: { color: colors.textMuted, lineHeight: 20 },
   sectionTitle: { fontWeight: "600", color: colors.deepNavy, marginBottom: 12 },
   itemRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 },
+  feeLabel: { color: colors.textMuted },
   totalRow: { flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.warmBeige, paddingTop: 12, marginTop: 8 },
   totalLabel: { fontWeight: "600" },
   totalValue: { fontWeight: "700", fontSize: 18 },

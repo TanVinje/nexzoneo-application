@@ -21,6 +21,11 @@ const defaultBranding: WhiteLabelConfig = {
   secondary_color: colors.softRoyalBlue,
   welcome_text: "Discover local products near you",
   marketplace_mode_enabled: true,
+  company_id: null,
+  delivery_fee_flat: 4.99,
+  tax_rate_percent: 0,
+  banner_title: "Order ahead, skip the wait",
+  banner_subtitle: "Local favorites delivered or ready for pickup",
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);

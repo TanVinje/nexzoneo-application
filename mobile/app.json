@@ -7,18 +7,28 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#141B4D"
     },
     "scheme": "nexzoneo",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nexzoneo.app"
+      "bundleIdentifier": "com.nexzoneo.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Nexzoneo uses your location to show nearby products and sellers.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Nexzoneo uses your location to show nearby products and sellers."
+      }
     },
     "android": {
+      "package": "com.nexzoneo.app",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#141B4D"
       },
       "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
       ]
@@ -27,11 +37,23 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/notification-icon.png",
           "color": "#141B4D"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Nexzoneo to use your location to find nearby products."
         }
       ],
       "expo-asset",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "replace-after-eas-init"
+      }
+    }
   }
 }

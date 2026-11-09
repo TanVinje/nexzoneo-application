@@ -10,9 +10,18 @@ from app.models import Company, User, WhiteLabelConfig
 from app.schemas import UserCreate
 
 
+ALLOWED_REGISTER_ROLES = {"customer", "seller"}
+
+
 def register_user(db: Session, data: UserCreate) -> User:
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+    if data.role not in ALLOWED_REGISTER_ROLES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role must be customer or seller",
+        )
 
     company_id = None
     if data.role == "seller":
@@ -31,6 +40,8 @@ def register_user(db: Session, data: UserCreate) -> User:
                 app_name=data.company_name,
                 primary_color="#141B4D",
                 secondary_color="#53619A",
+                delivery_fee_flat=Decimal("4.99"),
+                tax_rate_percent=Decimal("0"),
             )
         )
 

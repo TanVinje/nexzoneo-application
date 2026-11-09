@@ -1,15 +1,15 @@
 import logging
-from decimal import Decimal
-
-from typing import Optional
+from decimal import Decimal, ROUND_HALF_UP
+from typing import Optional, Tuple
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.utils import as_id
-from app.models import Order, OrderItem, Product, User
+from app.models import Order, OrderItem, Product, User, WhiteLabelConfig
 from app.schemas import OrderCreate
 from app.services.push_service import notify_order_accepted
+from app.services.ranking_service import get_white_label_config
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +41,74 @@ STATUS_TRANSITIONS = {
 }
 
 
+def _money(value: Decimal) -> Decimal:
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def calculate_order_totals(
+    subtotal: Decimal,
+    order_method: str,
+    wl: Optional[WhiteLabelConfig],
+) -> Tuple[Decimal, Decimal, Decimal, Decimal, Decimal]:
+    """Returns subtotal, delivery_fee, tax_amount, total, tax_rate_percent."""
+    subtotal = _money(subtotal)
+    delivery_fee = Decimal("0")
+    tax_rate = Decimal("0")
+    if wl:
+        tax_rate = Decimal(str(wl.tax_rate_percent or 0))
+        if order_method == "delivery":
+            delivery_fee = _money(Decimal(str(wl.delivery_fee_flat or 0)))
+    taxable = subtotal + delivery_fee
+    tax_amount = _money(taxable * tax_rate / Decimal("100")) if tax_rate else Decimal("0")
+    total = _money(subtotal + delivery_fee + tax_amount)
+    return subtotal, delivery_fee, tax_amount, total, tax_rate
+
+
+def quote_order(
+    db: Session,
+    company_id: str,
+    items: list,
+    order_method: str,
+) -> dict:
+    if not items:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have items")
+    if order_method not in ("delivery", "pickup"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="order_method must be delivery or pickup")
+
+    subtotal = Decimal("0")
+    for item in items:
+        product = (
+            db.query(Product)
+            .filter(Product.id == as_id(item.product_id), Product.company_id == as_id(company_id))
+            .first()
+        )
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        if not product.is_available or product.stock_quantity < item.quantity:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{product.name} unavailable")
+        subtotal += Decimal(str(product.price)) * item.quantity
+
+    wl = get_white_label_config(db, str(company_id))
+    subtotal, delivery_fee, tax_amount, total, tax_rate = calculate_order_totals(subtotal, order_method, wl)
+    return {
+        "subtotal": subtotal,
+        "delivery_fee": delivery_fee,
+        "tax_amount": tax_amount,
+        "total_price": total,
+        "tax_rate_percent": tax_rate,
+    }
+
+
 def create_order(db: Session, user: User, data: OrderCreate) -> Order:
     if not data.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have items")
+    if data.order_method not in ("delivery", "pickup"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="order_method must be delivery or pickup")
+    if data.order_method == "delivery" and not (data.delivery_address or "").strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Delivery address required")
 
     products = []
-    total = Decimal("0")
+    subtotal = Decimal("0")
     for item in data.items:
         product = (
             db.query(Product)
@@ -58,17 +120,23 @@ def create_order(db: Session, user: User, data: OrderCreate) -> Order:
         if not product.is_available or product.stock_quantity < item.quantity:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{product.name} unavailable")
         line_total = Decimal(str(product.price)) * item.quantity
-        total += line_total
+        subtotal += line_total
         products.append((product, item.quantity))
+
+    wl = get_white_label_config(db, str(data.company_id))
+    subtotal, delivery_fee, tax_amount, total, _ = calculate_order_totals(subtotal, data.order_method, wl)
 
     order = Order(
         user_id=user.id,
         company_id=as_id(data.company_id),
         status="Pending",
         payment_status="unpaid",
+        subtotal=subtotal,
+        delivery_fee=delivery_fee,
+        tax_amount=tax_amount,
         total_price=total,
         order_method=data.order_method,
-        delivery_address=data.delivery_address,
+        delivery_address=data.delivery_address.strip() if data.delivery_address else None,
     )
     db.add(order)
     db.flush()

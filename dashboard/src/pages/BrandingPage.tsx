@@ -90,6 +90,8 @@ export default function BrandingPage() {
             [
               { key: "app_name" as const, label: "App Name" },
               { key: "welcome_text" as const, label: "Welcome Text" },
+              { key: "banner_title" as const, label: "Home Banner Title" },
+              { key: "banner_subtitle" as const, label: "Home Banner Subtitle" },
               { key: "primary_color" as const, label: "Primary Color", type: "color" },
               { key: "secondary_color" as const, label: "Secondary Color", type: "color" },
             ] as const
@@ -104,9 +106,35 @@ export default function BrandingPage() {
               />
             </label>
           ))}
+          <label style={{ display: "block", marginBottom: 16 }}>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Flat delivery fee (pickup is always free)</span>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={config.delivery_fee_flat ?? 0}
+              onChange={(e) => setConfig({ ...config, delivery_fee_flat: Number(e.target.value) })}
+              style={{ marginTop: 6 }}
+            />
+            <p style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>
+              No courier provider is connected yet — this is a configurable flat fee only.
+            </p>
+          </label>
+          <label style={{ display: "block", marginBottom: 16 }}>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>Tax rate (%)</span>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              value={config.tax_rate_percent ?? 0}
+              onChange={(e) => setConfig({ ...config, tax_rate_percent: Number(e.target.value) })}
+              style={{ marginTop: 6 }}
+            />
+          </label>
           <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <input type="checkbox" checked={config.marketplace_mode_enabled} onChange={(e) => setConfig({ ...config, marketplace_mode_enabled: e.target.checked })} />
-            Marketplace Mode (show other sellers)
+            Marketplace Mode (show other sellers&apos; products)
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <input type="checkbox" checked={config.ranking_boost_enabled} onChange={(e) => setConfig({ ...config, ranking_boost_enabled: e.target.checked })} />
@@ -131,7 +159,12 @@ export default function BrandingPage() {
               )}
             </div>
             <h4 style={{ fontSize: 22 }}>{config.app_name}</h4>
-            <p style={{ opacity: 0.8, marginTop: 8, fontSize: 14 }}>{config.welcome_text}</p>
+            <p style={{ opacity: 0.9, marginTop: 8, fontSize: 16, fontWeight: 600 }}>{config.banner_title || "Order ahead"}</p>
+            <p style={{ opacity: 0.8, marginTop: 4, fontSize: 14 }}>{config.banner_subtitle || config.welcome_text}</p>
+            <p style={{ opacity: 0.7, marginTop: 12, fontSize: 12 }}>
+              Delivery ${Number(config.delivery_fee_flat || 0).toFixed(2)} · Pickup free
+              {Number(config.tax_rate_percent || 0) > 0 ? ` · Tax ${config.tax_rate_percent}%` : ""}
+            </p>
           </div>
           <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
             <div style={{ flex: 1, height: 40, background: config.primary_color, borderRadius: 6 }} />

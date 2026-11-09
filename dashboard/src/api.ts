@@ -57,6 +57,9 @@ export interface Order {
   id: string;
   status: string;
   payment_status: string;
+  subtotal?: number;
+  delivery_fee?: number;
+  tax_amount?: number;
   total_price: number;
   order_method: string;
   delivery_address?: string;
@@ -73,6 +76,11 @@ export interface WhiteLabelConfig {
   marketplace_mode_enabled: boolean;
   ranking_boost_enabled: boolean;
   welcome_text?: string;
+  company_id?: string;
+  delivery_fee_flat?: number;
+  tax_rate_percent?: number;
+  banner_title?: string;
+  banner_subtitle?: string;
 }
 
 export const authApi = {

@@ -8,7 +8,7 @@ import { authApi } from "../api";
 import { SkeletonBox } from "../components/Skeleton";
 
 export default function ProfileScreen() {
-  const { user, refreshUser, logout } = useAuth();
+  const { user, refreshUser, logout, branding } = useAuth();
   const [loading, setLoading] = useState(!user);
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.phone || "");
@@ -74,7 +74,11 @@ export default function ProfileScreen() {
         <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <Text style={styles.label}>Saved Address</Text>
         <TextInput style={styles.input} value={savedAddress} onChangeText={setSavedAddress} placeholder="For faster checkout" placeholderTextColor={colors.mutedBlue} />
-        <TouchableOpacity style={styles.button} onPress={saveProfile} disabled={saving}>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: branding.primary_color }]}
+          onPress={saveProfile}
+          disabled={saving}
+        >
           <Text style={styles.buttonText}>{saving ? "Saving..." : "Save Profile"}</Text>
         </TouchableOpacity>
       </View>
@@ -85,7 +89,10 @@ export default function ProfileScreen() {
         <TextInput style={styles.input} value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry />
         <Text style={styles.label}>New Password</Text>
         <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword} secureTextEntry />
-        <TouchableOpacity style={styles.buttonSecondary} onPress={changePassword}>
+        <TouchableOpacity
+          style={[styles.buttonSecondary, { backgroundColor: branding.secondary_color }]}
+          onPress={changePassword}
+        >
           <Text style={styles.buttonText}>Update Password</Text>
         </TouchableOpacity>
       </View>
@@ -104,8 +111,8 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: "500", color: colors.deepNavy, marginBottom: 6, marginTop: 8 },
   input: { borderWidth: 1, borderColor: colors.mutedBlue, borderRadius: 10, padding: 12, fontSize: 16 },
   disabled: { opacity: 0.6, backgroundColor: colors.warmBeige },
-  button: { backgroundColor: colors.deepNavy, borderRadius: 10, padding: 14, alignItems: "center", marginTop: 16 },
-  buttonSecondary: { backgroundColor: colors.softRoyalBlue, borderRadius: 10, padding: 14, alignItems: "center", marginTop: 16 },
+  button: { borderRadius: 10, padding: 14, alignItems: "center", marginTop: 16 },
+  buttonSecondary: { borderRadius: 10, padding: 14, alignItems: "center", marginTop: 16 },
   buttonText: { color: colors.white, fontWeight: "600" },
   logoutBtn: { borderWidth: 1, borderColor: colors.danger, borderRadius: 10, padding: 14, alignItems: "center", marginBottom: 40 },
   logoutText: { color: colors.danger, fontWeight: "600" },

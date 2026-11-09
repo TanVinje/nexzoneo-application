@@ -126,6 +126,9 @@ class Order(Base):
     company_id = uuid_fk("companies")
     status = Column(String(30), default="Pending")
     payment_status = Column(String(30), default="unpaid")
+    subtotal = Column(Numeric(10, 2), nullable=False, default=0)
+    delivery_fee = Column(Numeric(10, 2), nullable=False, default=0)
+    tax_amount = Column(Numeric(10, 2), nullable=False, default=0)
     total_price = Column(Numeric(10, 2), nullable=False)
     order_method = Column(String(20), default="delivery")
     delivery_address = Column(Text)
@@ -200,6 +203,12 @@ class WhiteLabelConfig(Base):
     marketplace_mode_enabled = Column(Boolean, default=True)
     ranking_boost_enabled = Column(Boolean, default=True)
     welcome_text = Column(Text, default="Welcome to your local marketplace")
+    # Configurable flat delivery fee (NOK/USD units). Pickup always charges 0.
+    delivery_fee_flat = Column(Numeric(10, 2), default=0)
+    # Tax percent applied to (subtotal + delivery_fee). 0 = no tax line.
+    tax_rate_percent = Column(Numeric(5, 2), default=0)
+    banner_title = Column(Text)
+    banner_subtitle = Column(Text)
 
     company = relationship("Company", back_populates="white_label_config")
 
@@ -210,6 +219,8 @@ class OfferVisibilityRule(Base):
     id = uuid_col()
     company_id = uuid_fk("companies")
     offer_name = Column(Text, nullable=False)
+    offer_subtitle = Column(Text)
+    offer_color = Column(Text, default="#141B4D")
     visibility = Column(String(20), default="exclusive")
     approved_by = Column(Text)
     is_active = Column(Boolean, default=False)
