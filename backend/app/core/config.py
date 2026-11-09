@@ -20,3 +20,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Railway / Heroku style URLs use postgres:// — SQLAlchemy needs postgresql://
+if settings.database_url.startswith("postgres://"):
+    settings.database_url = settings.database_url.replace("postgres://", "postgresql://", 1)

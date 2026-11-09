@@ -57,19 +57,23 @@ def run_migrations():
 
         # Ensure at least one public promo banner exists for home UI
         if "offer_visibility_rules" in inspector.get_table_names() and "companies" in inspector.get_table_names():
+            # Use TRUE/FALSE for Postgres compatibility (SQLite accepts these too)
             public_count = conn.execute(
-                text("SELECT COUNT(*) FROM offer_visibility_rules WHERE is_active = 1 AND visibility = 'public'")
+                text(
+                    "SELECT COUNT(*) FROM offer_visibility_rules "
+                    "WHERE is_active IS TRUE AND visibility = 'public'"
+                )
             ).scalar()
             if not public_count:
                 owner = conn.execute(
-                    text("SELECT id FROM companies WHERE is_white_label_owner = 1 LIMIT 1")
+                    text("SELECT id FROM companies WHERE is_white_label_owner IS TRUE LIMIT 1")
                 ).fetchone()
                 if owner:
                     conn.execute(
                         text(
                             "INSERT INTO offer_visibility_rules "
                             "(id, company_id, offer_name, offer_subtitle, offer_color, visibility, approved_by, is_active) "
-                            "VALUES (:id, :company_id, :name, :subtitle, :color, 'public', 'migrate', 1)"
+                            "VALUES (:id, :company_id, :name, :subtitle, :color, 'public', 'migrate', TRUE)"
                         ),
                         {
                             "id": str(uuid.uuid4()),
