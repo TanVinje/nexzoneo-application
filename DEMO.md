@@ -2,9 +2,18 @@
 
 Customers open **one link** in the browser. No Expo Go, no install.
 
+## Live demo (share this)
+
+| Role | Link |
+|------|------|
+| **Main demo hub** | https://nexzoneo-demo-hub.netlify.app |
+| Customer (auto) | https://nexzoneo-demo-hub.netlify.app/app/?demo=1 |
+| Seller dashboard | https://nexzoneo-seller-demo.netlify.app |
+| API health | https://api-production-6461.up.railway.app/health |
+
 ## What they do
 
-1. Open your Netlify demo URL  
+1. Open https://nexzoneo-demo-hub.netlify.app  
 2. Tap **Try as customer** (or **Try demo instantly**)  
 3. Browse products → cart → place order  
 

@@ -16,9 +16,18 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Browsers reject allow_origins=["*"] when credentials are enabled.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:8081",
+        "http://localhost:19006",
+        "https://nexzoneo-demo-hub.netlify.app",
+        "https://nexzoneo-seller-demo.netlify.app",
+        "https://nexzoneo-app.netlify.app",
+    ],
+    allow_origin_regex=r"https://.*\.netlify\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
