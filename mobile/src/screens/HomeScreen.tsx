@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Image, RefreshControl, ScrollView,
+  View, Text, FlatList, TouchableOpacity, StyleSheet, Image, RefreshControl, ScrollView, Platform,
 } from "react-native";
 import * as Location from "expo-location";
 import { colors } from "../theme";
@@ -35,14 +35,20 @@ export default function HomeScreen({ navigation }: any) {
     else setLoading(true);
     setError("");
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
       let lat: number | undefined;
       let lon: number | undefined;
-      if (status === "granted") {
-        const loc = await Location.getCurrentPositionAsync({});
-        lat = loc.coords.latitude;
-        lon = loc.coords.longitude;
-        setLocation({ lat, lon });
+      if (Platform.OS !== "web") {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === "granted") {
+            const loc = await Location.getCurrentPositionAsync({});
+            lat = loc.coords.latitude;
+            lon = loc.coords.longitude;
+            setLocation({ lat, lon });
+          }
+        } catch {
+          // Location optional for demo / web
+        }
       }
 
       const listParams: { lat?: number; lon?: number; company_id?: string } = { lat, lon };

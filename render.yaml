@@ -1,0 +1,30 @@
+# Free Render blueprint for the Nexzoneo API
+# https://dashboard.render.com → New → Blueprint → connect this repo
+services:
+  - type: web
+    name: nexzoneo-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexzoneo-db
+          property: connectionString
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: ALGORITHM
+        value: HS256
+
+databases:
+  - name: nexzoneo-db
+    plan: free
+    databaseName: nexzoneo
+    user: nexzoneo

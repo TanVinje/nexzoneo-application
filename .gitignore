@@ -11,7 +11,9 @@ uploads/
 # Node
 node_modules/
 dist/
+demo-dist/
 .expo/
+web-build/
 
 # OS
 .DS_Store

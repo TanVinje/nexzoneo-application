@@ -1,0 +1,16 @@
+# Customer web demo (Expo Web) → Netlify
+# Create a Netlify site with base directory = mobile
+[build]
+  command = "npm run build:web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Set these in Netlify UI (Site settings → Environment variables):
+  # EXPO_PUBLIC_API_URL = https://your-api.onrender.com
+  # EXPO_PUBLIC_SELLER_URL = https://your-seller-dashboard.netlify.app
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

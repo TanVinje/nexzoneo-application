@@ -12,6 +12,11 @@
       "backgroundColor": "#141B4D"
     },
     "scheme": "nexzoneo",
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nexzoneo.app",

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexzoneo Demo</title>
+  <meta name="description" content="Try the Nexzoneo white-label marketplace demo in your browser." />
+  <style>
+    :root {
+      --navy: #141B4D;
+      --blue: #53619A;
+      --muted: #7890B0;
+      --beige: #E9DFCC;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at top, #1c2660 0%, var(--navy) 55%),
+        var(--navy);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(440px, 100%);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      padding: 36px 28px;
+      backdrop-filter: blur(8px);
+    }
+    .mark {
+      width: 64px; height: 64px; border-radius: 16px;
+      background: var(--beige); color: var(--navy);
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 28px; margin-bottom: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0.2px; }
+    p { margin: 0 0 28px; color: rgba(255,255,255,0.78); line-height: 1.5; }
+    .btn {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      border-radius: 14px; padding: 16px 18px; font-weight: 700; font-size: 16px;
+      margin-bottom: 12px; transition: transform .15s ease, opacity .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: 0.95; }
+    .primary { background: var(--beige); color: var(--navy); }
+    .secondary { background: var(--blue); color: var(--white); }
+    .hint { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 18px; line-height: 1.5; }
+    code { font-size: 11px; background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark">N</div>
+    <h1>Nexzoneo Demo</h1>
+    <p>Click once to try the marketplace in your browser. No app install required.</p>
+
+    <a class="btn primary" id="customerBtn" href="./app/?demo=1">Try as customer</a>
+    <a class="btn secondary" id="sellerBtn" href="https://nexzoneo-seller.netlify.app">Try as seller</a>
+
+    <p class="hint">
+      Customer demo: <code>customer@demo.com</code> / <code>demo123</code><br />
+      Seller demo: <code>seller@nexzoneo.com</code> / <code>demo123</code>
+    </p>
+  </main>
+  <script>
+    // Optional: override via query ?customer=...&seller=...
+    const params = new URLSearchParams(location.search);
+    const customer = params.get("customer");
+    const seller = params.get("seller");
+    if (customer) document.getElementById("customerBtn").href = customer;
+    if (seller) document.getElementById("sellerBtn").href = seller;
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Seller dashboard → Netlify
+# Create a Netlify site with base directory = dashboard
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Set in Netlify UI:
+  # VITE_API_URL = https://your-api.onrender.com
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

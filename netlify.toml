@@ -1,14 +1,40 @@
-# Seller dashboard → Netlify
+# One-click demo hub:
+#   /          → landing (Try as customer / Try as seller)
+#   /app/      → customer marketplace (Expo Web)
+#
+# Create ONE Netlify site from this repo (root). Also create a second site
+# for the seller dashboard (base = dashboard). See DEMO.md.
+
 [build]
-  base = "dashboard"
-  command = "npm run build"
-  publish = "dist"
+  command = """
+    set -e
+    cd mobile
+    npm ci
+    npm run build:web
+    cd ..
+    rm -rf demo-dist
+    mkdir -p demo-dist/app
+    cp -R mobile/dist/. demo-dist/app/
+    # Expo emits absolute /_expo paths — make them work under /app/
+    python3 - <<'PY'
+from pathlib import Path
+html = Path("demo-dist/app/index.html")
+text = html.read_text()
+text = text.replace('href="/', 'href="./').replace("href='/", "href='./")
+text = text.replace('src="/', 'src="./').replace("src='/", "src='./")
+html.write_text(text)
+PY
+    cp demo/index.html demo-dist/index.html
+  """
+  publish = "demo-dist"
 
 [build.environment]
   NODE_VERSION = "20"
+  # Set in Netlify UI:
+  # EXPO_PUBLIC_API_URL=https://YOUR-API.onrender.com
+  # EXPO_PUBLIC_SELLER_URL=https://YOUR-SELLER.netlify.app
 
-# React Router SPA fallback
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/app/*"
+  to = "/app/index.html"
   status = 200

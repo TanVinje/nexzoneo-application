@@ -16,9 +16,15 @@ A full-stack MVP marketplace built from the Nexzoneo technical and functional sp
 ```
 ├── backend/          # FastAPI REST API
 ├── dashboard/        # Seller web dashboard
-├── mobile/           # Customer React Native app
+├── mobile/           # Customer app (Expo + web demo)
+├── demo/             # One-click demo landing page
+├── render.yaml       # Free Render API blueprint
 └── docker-compose.yml
 ```
+
+## Public demo (one click)
+
+See **[DEMO.md](DEMO.md)** — customers open a Netlify link in the browser (no app install).
 
 ## Features (MVP)
 
